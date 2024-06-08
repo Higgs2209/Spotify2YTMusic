@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+
+    <title>Spotify to YouTube</title>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="mt-5">Spotify to YouTube</h1>
+      <form method="POST" class="mt-4">
+        <h2>Select Playlists</h2>
+        {% for playlist in playlists %}
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="playlists" value="{{ playlist['name'] }}" id="{{ playlist['name'] }}">
+            <label class="form-check-label" for="{{ playlist['name'] }}">
+              {{ playlist['name'] }}
+            </label>
+          </div>
+        {% endfor %}
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="liked_songs" value="liked_songs" id="liked_songs">
+          <label class="form-check-label" for="liked_songs">
+            Liked Songs
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Submit</button>
+      </form>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  </body>
+</html>

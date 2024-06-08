@@ -1,7 +1,6 @@
-from flask import Flask, request, render_template_string, redirect
+from flask import Flask, request, render_template_string, redirect, render_template
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-from SpotifyLoginAPI import spotify_login
 from Constants import SPOTIPY_CLIENT_ID_CONSTANT, SPOTIPY_CLIENT_SECRET_CONSTANT
 
 
@@ -43,7 +42,11 @@ def index():
             if liked_songs_selected:
                 # Get the user's liked songs
                 liked_songs = sp.current_user_saved_tracks()
-                # TODO: Use the YouTube Music API to create a new playlist with the liked songs
+                # Print each song name
+                for song in liked_songs['items']:
+                    artist_name = song['track']['artists'][0]['name']
+                    song_name = song['track']['name']
+                    print(f"Artist: {artist_name}, Song: {song_name}")
 
             # For each selected playlist, use the Spotify API to get all of the songs in the playlist
             for playlist_name in selected_playlists:
@@ -61,17 +64,9 @@ def index():
             # TODO: Use the YouTube Music API to create new playlists with the same songs
 
             return 'Selected playlists: ' + ', '.join(selected_playlists)
-
-        # Return a form with a checkbox for each playlist and for the liked songs
-        return render_template_string('''
-            <form method="POST">
-                {% for playlist in playlists %}
-                    <input type="checkbox" name="playlists" value="{{ playlist['name'] }}">{{ playlist['name'] }}<br>
-                {% endfor %}
-                <input type="checkbox" name="liked_songs" value="liked_songs">Liked Songs<br>
-                <input type="submit" value="Submit">
-            </form>
-        ''', playlists=playlists['items'])
+        else:
+            # Return a form with a checkbox for each playlist and for the liked songs
+            return render_template('index.html', playlists=playlists['items'])
 @app.route('/callback')
 def callback():
     auth_manager.get_access_token(request.args['code'])
