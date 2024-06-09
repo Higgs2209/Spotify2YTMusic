@@ -1,6 +1,8 @@
 from flask import Flask, request, render_template, redirect, session
 from main import Spotify
 from Constants import SPOTIPY_CLIENT_ID_CONSTANT, SPOTIPY_CLIENT_SECRET_CONSTANT
+from ytmusicapi import YTMusic
+from main import Spotify
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # replace with your own secret key
@@ -29,10 +31,39 @@ def spotify_playlists():
     if request.method == 'POST':
         selected_playlists = request.form.getlist('playlists')
         session['selected_playlists'] = selected_playlists
-        return 'Selected playlists: ' + ', '.join(selected_playlists)
+        return redirect('/select-platform')  # redirect to the new route
     else:
         playlists = spotify.get_playlists()
         return render_template('index.html', playlists=playlists['items'])
+@app.route('/select-platform')
+def select_platform():
+    return render_template('select_platform.html')  # create a new HTML template for this route
+
+
+@app.route('/transfer/youtube')
+def transfer_youtube():
+    ytmusic = YTMusic('oauth.json')  # replace with your headers auth file
+    selected_playlists = session.get('selected_playlists', [])
+
+    for playlist_id in selected_playlists:
+        print(f"Playlist ID: {playlist_id}")  # print out the playlist ID
+        # Get the playlist details and tracks from Spotify
+        playlist = spotify.get_playlist(playlist_id)  # use get_playlist method here
+        tracks = spotify.get_playlist_tracks(playlist_id)
+
+        # Search for each track on YouTube Music and get its ID
+        youtube_track_ids = []
+        for track in tracks:
+            search_results = ytmusic.search(f"{track['artists'][0]['name']} {track['name']}", filter='songs')
+            if search_results:
+                youtube_track_ids.append(search_results[0]['videoId'])
+
+        # Create a new playlist on YouTube Music and add the tracks
+        youtube_playlist_id = ytmusic.create_playlist(playlist['name'], playlist['description'])
+        ytmusic.add_playlist_items(youtube_playlist_id, youtube_track_ids)
+
+    return 'Playlists have been transferred to YouTube Music!'
+
 
 if __name__ == '__main__':
     app.run(port=8080)

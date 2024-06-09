@@ -2,3 +2,5 @@
 .idea
 /.venv
 Constants.py
+oauth.json
+token_info.json
