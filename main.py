@@ -46,6 +46,13 @@ class Spotify(MusicPlatform):
     def get_playlist(self, playlist_id):
         return self.sp.playlist(playlist_id)
 
+    def get_playlist_tracks(self, playlist_id):
+        results = self.sp.playlist_items(playlist_id)
+        tracks = results['items']
+        while results['next']:
+            results = self.sp.next(results)
+            tracks.extend(results['items'])
+        return tracks
     def add_songs_to_playlist(self, playlist_name, songs):
         # TODO: Implement this method
         pass
