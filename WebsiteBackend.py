@@ -45,37 +45,43 @@ def spotify_playlists():
 def select_platform():
     return render_template('select_platform.html')  # create a new HTML template for this route
 
-
 @app.route('/transfer/youtube')
 def transfer_youtube():
     ytmusic = YTMusic('oauth.json')  # replace with your headers auth file
     selected_playlists = session.get('selected_playlists', [])
 
     for playlist_id in selected_playlists:
-        print(f"Playlist ID: {playlist_id}")  # print out the playlist ID
-        # Get the playlist details and tracks from Spotify
-        playlist = spotify.get_playlist(playlist_id)  # use get_playlist method here
-        tracks = spotify.get_playlist_tracks(playlist_id)
+        # Fetch the playlist from Spotify
+        playlist = spotify.get_playlist(playlist_id)
 
-        # Search for each track on YouTube Music and get its ID
+        # Fetch the track IDs from the playlist
+        spotify_tracks = spotify.get_playlist_tracks(playlist_id)
+
+        # Convert Spotify track IDs to YouTube track IDs
         youtube_track_ids = []
-        for track in tracks:
-            search_results = ytmusic.search(f"{track['track']['artists'][0]['name']} {track['track']['name']}",
-                                            filter='songs', limit=1)
+        for track in spotify_tracks:
+            artist_name = track['track']['artists'][0]['name']
+            song_name = track['track']['name']
+            search_results = ytmusic.search(f"{song_name} {artist_name}", filter="songs")
             if search_results:
-                print(
-                    f"Search results for {track['track']['artists'][0]['name']} {track['track']['name']}: {search_results[0]}")  # print out the first search result
                 youtube_track_ids.append(search_results[0]['videoId'])
 
-        print(f"YouTube track IDs: {youtube_track_ids}")  # print out the YouTube track IDs
+        # Check if youtube_track_ids is empty
+        if not youtube_track_ids:
+            print("No YouTube track IDs found")
+            continue
 
         # Create a new playlist on YouTube Music and add the tracks
         youtube_playlist_id = ytmusic.create_playlist(playlist['name'], playlist['description'])
-        result = ytmusic.add_playlist_items(youtube_playlist_id, youtube_track_ids)
-        print(f"Result of add_playlist_items: {result}")  # print out the result of add_playlist_items
+        print(f"YOUTUBE ID {youtube_playlist_id}")
+
+        # Try to add songs to playlist and catch any exceptions
+        try:
+            ytmusic.add_playlist_items(youtube_playlist_id, youtube_track_ids)
+        except Exception as e:
+            print(f"Error adding songs to playlist: {e}")
 
     return 'Playlists have been transferred to YouTube Music!'
-
 
 if __name__ == '__main__':
     app.run(port=8080)
